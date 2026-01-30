@@ -1,0 +1,9 @@
+requests
+pandas
+numpy
+tensorflow
+scikit-learn
+python-telegram-bot
+newsapi-python
+vaderSentiment
+python-dotenv
