@@ -21,7 +21,17 @@ def auto_scan_loop():
 
 @app.route("/")
 def home():
-    return jsonify(load_signals())
+    return jsonify({
+        "market_open": market_is_open(),
+        "banner": None if market_is_open() else "Market is closed or low liquidity (weekend)",
+        "signals": load_signals()
+    })
+
+@app.route("/status")
+def status():
+    return jsonify({
+        "market_open": market_is_open()
+    })
 
 if __name__ == "__main__":
     threading.Thread(target=auto_scan_loop, daemon=True).start()
