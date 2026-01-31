@@ -1,41 +1,57 @@
 import requests
 from config import POLYGON_API_KEY, TWELVE_API_KEY
 
-def fetch_polygon(symbol, timeframe):
-    url = (
-        f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/{timeframe}/"
-        f"{get_dates()}?adjusted=true&sort=asc&limit=200&apiKey={POLYGON_API_KEY}"
-    )
-    r = requests.get(url, timeout=10).json()
+# Map internal symbols → TwelveData symbols
+TWELVE_SYMBOL_MAP = {
+    "EURUSD": "EUR/USD",
+    "GBPUSD": "GBP/USD",
+    "USDJPY": "USD/JPY"
+}
 
-    if "results" not in r:
-        raise RuntimeError(r.get("error", "Polygon error"))
+def fetch_market_data(symbol, timeframe=None):
+    """
+    Returns:
+    {
+        "symbol": str,
+        "price": float
+    }
+    """
+
+    # ===== GOLD (Polygon) =====
+    if symbol == "XAUUSD":
+        url = (
+            f"https://api.polygon.io/v2/aggs/ticker/C:XAUUSD/"
+            f"prev?adjusted=true&apiKey={POLYGON_API_KEY}"
+        )
+        r = requests.get(url, timeout=10)
+        data = r.json()
+
+        if "results" not in data:
+            raise RuntimeError(f"Polygon error: {data}")
+
+        return {
+            "symbol": symbol,
+            "price": float(data["results"][0]["c"])
+        }
+
+    # ===== FOREX (TwelveData) =====
+    td_symbol = TWELVE_SYMBOL_MAP.get(symbol)
+
+    if not td_symbol:
+        raise RuntimeError(f"Unsupported TwelveData symbol: {symbol}")
+
+    url = (
+        "https://api.twelvedata.com/price?"
+        f"symbol={td_symbol}&apikey={TWELVE_API_KEY}"
+    )
+
+    r = requests.get(url, timeout=10)
+    data = r.json()
+
+    if "price" not in data:
+        raise RuntimeError(f"TwelveData error for {symbol}: {data}")
 
     return {
-        "values": [
-            {
-                "close": x["c"],
-                "open": x["o"],
-                "high": x["h"],
-                "low": x["l"]
-            } for x in r["results"]
-        ]
+        "symbol": symbol,
+        "price": float(data["price"])
     }
-
-def fetch_twelve(symbol, timeframe):
-    url = (
-        f"https://api.twelvedata.com/time_series?"
-        f"symbol={symbol}&interval={timeframe}&apikey={TWELVE_API_KEY}"
-    )
-    r = requests.get(url, timeout=10).json()
-
-    if "values" not in r:
-        raise RuntimeError(r.get("message", "TwelveData error"))
-
-    return r
-
-def get_dates():
-    import datetime
-    end = datetime.datetime.utcnow()
-    start = end - datetime.timedelta(days=5)
-    return f"{start.strftime('%Y-%m-%d')}/{end.strftime('%Y-%m-%d')}"

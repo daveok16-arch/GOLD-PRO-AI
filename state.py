@@ -1,14 +1,19 @@
-import datetime
+import json
+import os
+from datetime import datetime
 
-STATE = {}
+STATE_FILE = "signals.json"
 
-def update_signal(symbol, signal, confidence, price):
-    STATE[symbol] = {
-        "signal": signal,
-        "confidence": confidence,
-        "price": price,
-        "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    }
+def load_signals():
+    if not os.path.exists(STATE_FILE):
+        return []
+    with open(STATE_FILE, "r") as f:
+        return json.load(f)
 
-def get_state():
-    return STATE
+def save_signal(signal):
+    signals = load_signals()
+    signal["time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    signals.insert(0, signal)
+
+    with open(STATE_FILE, "w") as f:
+        json.dump(signals[:100], f, indent=2)

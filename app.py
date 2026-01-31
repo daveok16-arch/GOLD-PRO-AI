@@ -1,23 +1,20 @@
 from flask import Flask, jsonify
-from main import run_cycle
+from main import run_scan
+from state import get_signals
 
 app = Flask(__name__)
 
-latest_signals = []
-
 @app.route("/")
-def home():
-    return {
+def dashboard():
+    return jsonify({
         "status": "GOLD-PRO-AI RUNNING",
-        "signals": latest_signals
-    }
+        "signals": get_signals()
+    })
 
-@app.route("/run")
-def run_bot():
-    signal = run_cycle(web_mode=True)
-    if signal:
-        latest_signals.append(signal)
-    return jsonify({"ok": True, "signal": signal})
+@app.route("/scan")
+def scan():
+    results = run_scan()
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)

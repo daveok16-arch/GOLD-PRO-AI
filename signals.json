@@ -1,0 +1,37 @@
+[
+  {
+    "symbol": "USDJPY",
+    "signal": "SELL",
+    "confidence": 64,
+    "price": 154.78,
+    "time": "2026-01-31 12:35:57"
+  },
+  {
+    "symbol": "GBPUSD",
+    "signal": "BUY",
+    "confidence": 85,
+    "price": 1.37,
+    "time": "2026-01-31 12:35:57"
+  },
+  {
+    "symbol": "EURUSD",
+    "signal": "BUY",
+    "confidence": 70,
+    "price": 1.19,
+    "time": "2026-01-31 12:35:56"
+  },
+  {
+    "symbol": "XAUUSD",
+    "signal": "SELL",
+    "confidence": 74,
+    "price": 4884.23,
+    "time": "2026-01-31 12:35:55"
+  },
+  {
+    "symbol": "XAUUSD",
+    "signal": "BUY",
+    "confidence": 72,
+    "price": 4884.23,
+    "time": "2026-01-31 12:34:49"
+  }
+]
