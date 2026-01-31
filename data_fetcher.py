@@ -1,28 +1,41 @@
-import os
 import requests
+from config import POLYGON_API_KEY, TWELVE_API_KEY
 
-API_KEY = os.getenv("TWELVE_API_KEY")
+def fetch_polygon(symbol, timeframe):
+    url = (
+        f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/{timeframe}/"
+        f"{get_dates()}?adjusted=true&sort=asc&limit=200&apiKey={POLYGON_API_KEY}"
+    )
+    r = requests.get(url, timeout=10).json()
 
-def fetch_market_data(symbol, interval):
-    if not API_KEY:
-        raise RuntimeError("TWELVE_API_KEY not set")
+    if "results" not in r:
+        raise RuntimeError(r.get("error", "Polygon error"))
 
-    url = "https://api.twelvedata.com/time_series"
-    params = {
-        "symbol": symbol,
-        "interval": interval,
-        "apikey": API_KEY,
-        "outputsize": 100
+    return {
+        "values": [
+            {
+                "close": x["c"],
+                "open": x["o"],
+                "high": x["h"],
+                "low": x["l"]
+            } for x in r["results"]
+        ]
     }
 
-    r = requests.get(url, params=params, timeout=10)
-    data = r.json()
+def fetch_twelve(symbol, timeframe):
+    url = (
+        f"https://api.twelvedata.com/time_series?"
+        f"symbol={symbol}&interval={timeframe}&apikey={TWELVE_API_KEY}"
+    )
+    r = requests.get(url, timeout=10).json()
 
-    # Defensive checks
-    if "status" in data and data["status"] == "error":
-        raise RuntimeError(f"TwelveData error for {symbol}: {data.get('message')}")
+    if "values" not in r:
+        raise RuntimeError(r.get("message", "TwelveData error"))
 
-    if "values" not in data or not data["values"]:
-        raise RuntimeError(f"No candle data returned for {symbol}")
+    return r
 
-    return data
+def get_dates():
+    import datetime
+    end = datetime.datetime.utcnow()
+    start = end - datetime.timedelta(days=5)
+    return f"{start.strftime('%Y-%m-%d')}/{end.strftime('%Y-%m-%d')}"

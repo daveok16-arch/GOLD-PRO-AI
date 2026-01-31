@@ -1,4 +1,5 @@
 import datetime
+from analytics import save_trade
 
 class PaperTrader:
     def __init__(self, starting_balance=10000):
@@ -23,7 +24,7 @@ class PaperTrader:
             "direction": direction,
             "entry": price,
             "confidence": confidence,
-            "opened": datetime.datetime.utcnow()
+            "opened": datetime.datetime.now(datetime.timezone.utc)
         }
         self.open_trades.append(trade)
         self.trades_today += 1
@@ -39,18 +40,19 @@ class PaperTrader:
         self.balance += pnl
 
         trade["exit"] = exit_price
-        trade["pnl"] = pnl
+        trade["pnl"] = round(pnl, 2)
         trade["reason"] = reason
-        trade["closed"] = datetime.datetime.utcnow()
+        trade["closed"] = datetime.datetime.now(datetime.timezone.utc)
 
         self.trade_log.append(trade)
         self.open_trades.remove(trade)
 
+        save_trade(trade)
         return trade
 
     def check_exits(self, current_price, tp_pct, sl_pct, max_minutes):
         closed = []
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         for trade in self.open_trades[:]:
             entry = trade["entry"]
@@ -61,10 +63,8 @@ class PaperTrader:
 
             if current_price >= tp:
                 closed.append(self.close_trade(trade, current_price, "TAKE_PROFIT"))
-
             elif current_price <= sl:
                 closed.append(self.close_trade(trade, current_price, "STOP_LOSS"))
-
             elif age >= max_minutes:
                 closed.append(self.close_trade(trade, current_price, "TIME_EXIT"))
 

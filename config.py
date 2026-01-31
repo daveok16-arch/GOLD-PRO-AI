@@ -1,25 +1,31 @@
-# =============================
-# API / BOT SETTINGS
-# =============================
+# ========================
+# API KEYS
+# ========================
+POLYGON_API_KEY = "HOMn5he5dUgDvhA2a4RN_9gbBSsELNEm"
+TWELVE_API_KEY = "083054b70e074f92b64ebdc75e084f4c"
 
-SYMBOLS = {
-    "XAUUSD": "XAU/USD",
-    "BTC": "BTC/USD",
-    "VIX": "VXX",
-    "SPX": "SPY",
-    "NASDAQ": "QQQ"
+# ========================
+# TELEGRAM
+# ========================
+TELEGRAM_BOT_TOKEN = "8214823027:AAHVfjk9KxRGGlS9svqKaiw4Qg0DFhx0o-8"
+TELEGRAM_CHAT_ID = "7779937295"
+
+# ========================
+# SYMBOL GROUPS
+# ========================
+POLYGON_SYMBOLS = {
+    "XAUUSD": "C:XAUUSD",
+    "SPX": "I:SPX",
+    "NASDAQ": "I:NDX",
+    "VIX": "I:VIX"
 }
 
-TIMEFRAME = "5min"
-SLEEP_SECONDS = 60
+TWELVE_SYMBOLS = {
+    "BTCUSD": "BTC/USD"
+}
 
-CONFIDENCE_THRESHOLD = 60
-MAX_TRADES_PER_DAY = 5
-
-# =============================
-# PAPER TRADING
-# =============================
-STARTING_BALANCE = 10000
-TAKE_PROFIT_PCT = 0.005
-STOP_LOSS_PCT = 0.003
-MAX_TRADE_MINUTES = 30
+# ========================
+# BOT SETTINGS
+# ========================
+TIMEFRAME = "15min"
+CONFIDENCE_MIN = 60
