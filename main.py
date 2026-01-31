@@ -2,6 +2,7 @@ from config import SYMBOLS, CONFIDENCE_MIN
 from data_fetcher import fetch_market_data
 from signal_engine import generate_signal
 from state import save_signal
+from charts import tradingview_chart
 import datetime
 
 def run_scan():
@@ -10,9 +11,14 @@ def run_scan():
     for symbol in SYMBOLS:
         try:
             market = fetch_market_data(symbol)
-            signal, confidence = generate_signal(symbol, market["price"])
 
-            if confidence < CONFIDENCE_MIN:
+            signal_data = generate_signal(symbol, market["price"])
+
+            # Expecting dict: {"signal": "...", "confidence": int}
+            signal = signal_data.get("signal")
+            confidence = signal_data.get("confidence", 0)
+
+            if not signal or confidence < CONFIDENCE_MIN:
                 continue
 
             entry = {
@@ -20,7 +26,8 @@ def run_scan():
                 "signal": signal,
                 "confidence": confidence,
                 "price": market["price"],
-                "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                "chart": tradingview_chart(symbol)
             }
 
             save_signal(entry)

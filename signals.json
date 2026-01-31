@@ -33,5 +33,37 @@
     "confidence": 72,
     "price": 4884.23,
     "time": "2026-01-31 12:34:49"
+  },
+  {
+    "symbol": "XAUUSD",
+    "signal": "SELL",
+    "confidence": 82,
+    "price": 4884.23,
+    "time": "2026-01-31 12:44:35",
+    "chart": "https://www.tradingview.com/chart/?symbol=OANDA:XAUUSD"
+  },
+  {
+    "symbol": "EURUSD",
+    "signal": "BUY",
+    "confidence": 81,
+    "price": 1.18594,
+    "time": "2026-01-31 12:44:35",
+    "chart": "https://www.tradingview.com/chart/?symbol=FX:EURUSD"
+  },
+  {
+    "symbol": "GBPUSD",
+    "signal": "BUY",
+    "confidence": 65,
+    "price": 1.36853,
+    "time": "2026-01-31 12:44:36",
+    "chart": "https://www.tradingview.com/chart/?symbol=FX:GBPUSD"
+  },
+  {
+    "symbol": "USDJPY",
+    "signal": "SELL",
+    "confidence": 71,
+    "price": 154.78117,
+    "time": "2026-01-31 12:44:37",
+    "chart": "https://www.tradingview.com/chart/?symbol=FX:USDJPY"
   }
 ]
