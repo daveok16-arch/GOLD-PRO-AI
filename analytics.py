@@ -1,48 +1,38 @@
-import json
-import os
+from state import load_signals
+from collections import defaultdict
 
-STATS_FILE = "trade_history.json"
+def build_analytics():
+    signals = load_signals()
 
-def save_trade(trade):
-    history = load_history()
-    history.append(trade)
-
-    with open(STATS_FILE, "w") as f:
-        json.dump(history, f, indent=2, default=str)
-
-def load_history():
-    if not os.path.exists(STATS_FILE):
-        return []
-    with open(STATS_FILE, "r") as f:
-        return json.load(f)
-
-def calculate_stats(starting_balance):
-    history = load_history()
-    if not history:
-        return {}
-
-    balance = starting_balance
-    peak = balance
-    max_dd = 0
-    wins = 0
-
-    for t in history:
-        pnl = t.get("pnl", 0)
-        balance += pnl
-        peak = max(peak, balance)
-        dd = peak - balance
-        max_dd = max(max_dd, dd)
-
-        if pnl > 0:
-            wins += 1
-
-    total = len(history)
-    return {
-        "total_trades": total,
-        "wins": wins,
-        "losses": total - wins,
-        "win_rate": round((wins / total) * 100, 2),
-        "total_pnl": round(balance - starting_balance, 2),
-        "max_drawdown": round(max_dd, 2),
-        "final_balance": round(balance, 2)
+    analytics = {
+        "total_signals": len(signals),
+        "by_symbol": {},
+        "buy_sell_ratio": {"BUY": 0, "SELL": 0},
+        "latest_signal_time": None
     }
+
+    confidence_sum = defaultdict(int)
+    confidence_count = defaultdict(int)
+    symbol_count = defaultdict(int)
+
+    for s in signals:
+        symbol = s["symbol"]
+        signal = s["signal"]
+        confidence = s["confidence"]
+
+        symbol_count[symbol] += 1
+        confidence_sum[symbol] += confidence
+        confidence_count[symbol] += 1
+
+        analytics["buy_sell_ratio"][signal] += 1
+        analytics["latest_signal_time"] = s["time"]
+
+    for symbol in symbol_count:
+        analytics["by_symbol"][symbol] = {
+            "count": symbol_count[symbol],
+            "avg_confidence": round(
+                confidence_sum[symbol] / confidence_count[symbol], 2
+            )
+        }
+
+    return analytics

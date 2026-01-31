@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from main import run_scan
 from state import load_signals
 from utils import market_is_open
+from analytics import build_analytics
 import threading
 import time
 
@@ -26,6 +27,10 @@ def home():
         "banner": None if market_is_open() else "Market is closed or low liquidity (weekend)",
         "signals": load_signals()
     })
+
+@app.route("/analytics")
+def analytics():
+    return jsonify(build_analytics())
 
 @app.route("/status")
 def status():
