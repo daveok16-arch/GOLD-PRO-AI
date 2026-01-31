@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from main import run_scan
 from state import load_signals
 from utils import market_is_open
@@ -29,8 +29,12 @@ def home():
     })
 
 @app.route("/analytics")
-def analytics():
+def analytics_api():
     return jsonify(build_analytics())
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html", analytics=build_analytics())
 
 @app.route("/status")
 def status():
