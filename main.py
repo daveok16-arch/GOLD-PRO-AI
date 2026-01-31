@@ -1,45 +1,129 @@
 import time
-from datetime import datetime
-import pytz
-from signal_generator import SignalGenerator
-from simulator import TradeSimulator
-from notifier import Notifier
-from data_fetcher import DataFetcher
-import config
-import logging
+import datetime
 
-logging.basicConfig(filename=config.LOG_FILE, level=logging.INFO)
+from config import (
+    SYMBOLS,
+    TIMEFRAME,
+    SLEEP_SECONDS,
+    CONFIDENCE_THRESHOLD,
+    MAX_TRADES_PER_DAY,
+    STARTING_BALANCE,
+    TAKE_PROFIT_PCT,
+    STOP_LOSS_PCT,
+    MAX_TRADE_MINUTES
+)
 
-def main():
-    generator = SignalGenerator()
-    simulator = TradeSimulator()
-    notifier = Notifier()
-    fetcher = DataFetcher()
-    tz = pytz.timezone(config.TIMEZONE)
+from data_fetcher import fetch_market_data
+from signal_engine import simple_trend_check, generate_signal
+from paper_trader import PaperTrader
+from notifier import send_telegram
+from state import state
 
-    notifier.send_message(f"🤖 *GOLD-PRO-AI Bot* Started\nTime: {datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')} WAT")
+# =============================
+# INIT
+# =============================
+trader = PaperTrader(STARTING_BALANCE)
 
-    while True:
-        lines = [f"📈 *Market Update* {datetime.now(tz).strftime('%H:%M')}"]
-        prices = {}
-        for sym_key in config.SYMBOLS.keys():
-            df = fetcher.fetch_latest(config.SYMBOLS[sym_key])
-            if not df.empty:
-                price = df["close"].iloc[0]
-                prices[sym_key] = price
-                signal, score = generator.generate_signal(sym_key)
-                lines.append(f"• {sym_key}: {signal} (Score: {score}) | Price: **{price:.2f}**")
-                simulator.execute_trade(sym_key, signal, price)
-            else:
-                lines.append(f"• {sym_key}: ⚠️ No data")
+print("GOLD-PRO-AI — PAPER MODE WITH AUTO EXIT")
 
-        portfolio_value = simulator.get_portfolio_value(prices)
-        lines.append(f"💰 Sim Portfolio: ${portfolio_value:.2f}")
+# =============================
+# HELPERS
+# =============================
+def get_latest_price(data):
+    try:
+        return float(data["values"][0]["close"])
+    except Exception:
+        return None
 
-        notifier.send_message("\n".join(lines))
-        logging.info("\n".join(lines))
+# =============================
+# MAIN LOOP
+# =============================
+def run_cycle():
+    market_trends = {}
+    prices = {}
 
-        time.sleep(config.CHECK_EVERY_SECONDS)
+    # -------- FETCH & ANALYZE --------
+    for key, symbol in SYMBOLS.items():
+        try:
+            data = fetch_market_data(symbol, TIMEFRAME)
+            trend = simple_trend_check(data)
+            price = get_latest_price(data)
 
+            if trend and price:
+                market_trends[key] = trend
+                prices[key] = price
+
+        except Exception as e:
+            print(f"[WARN] {symbol}: {e}")
+
+    # -------- AUTO CLOSE TRADES --------
+    for trade in trader.open_trades[:]:
+        symbol = trade["symbol"]
+        price = prices.get(symbol)
+
+        if not price:
+            continue
+
+        closed_trades = trader.check_exits(
+            current_price=price,
+            tp_pct=TAKE_PROFIT_PCT,
+            sl_pct=STOP_LOSS_PCT,
+            max_minutes=MAX_TRADE_MINUTES
+        )
+
+        for t in closed_trades:
+            msg = (
+                "❌ PAPER TRADE CLOSED\n"
+                f"SYMBOL: {t['symbol']}\n"
+                f"REASON: {t['reason']}\n"
+                f"PNL: {t['pnl']:.2f}\n"
+                f"BALANCE: {trader.balance:.2f}"
+            )
+            print(msg)
+            send_telegram(msg)
+
+    # -------- GENERATE SIGNAL --------
+    signal, confidence = generate_signal(market_trends)
+
+    # -------- OPEN NEW TRADE --------
+    if (
+        signal != "NO_TRADE"
+        and confidence >= CONFIDENCE_THRESHOLD
+        and trader.can_trade(MAX_TRADES_PER_DAY)
+    ):
+        asset = signal.split("_")[-1]
+        price = prices.get(asset)
+
+        if price:
+            trade = trader.open_trade(
+                symbol=asset,
+                direction="BUY",
+                confidence=confidence,
+                price=price
+            )
+
+            msg = (
+                "📈 PAPER TRADE OPENED\n"
+                f"SYMBOL: {asset}\n"
+                f"ENTRY: {price}\n"
+                f"CONFIDENCE: {confidence}%"
+            )
+            print(msg)
+            send_telegram(msg)
+
+    # -------- UPDATE DASHBOARD STATE --------
+    state["balance"] = round(trader.balance, 2)
+    state["open_trades"] = trader.open_trades
+    state["last_signal"] = signal
+    state["confidence"] = confidence
+    state["last_update"] = datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%d %H:%M:%S UTC"
+    )
+
+# =============================
+# RUN FOREVER
+# =============================
 if __name__ == "__main__":
-    main()
+    while True:
+        run_cycle()
+        time.sleep(SLEEP_SECONDS)

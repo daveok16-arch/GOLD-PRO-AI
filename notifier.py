@@ -1,12 +1,17 @@
+import os
 import requests
-import config
 
-class Notifier:
-    def send_message(self, text):
-        url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {"chat_id": config.TELEGRAM_CHAT_ID, "text": text, "parse_mode": "Markdown"}
-        try:
-            r = requests.post(url, json=payload)
-            r.raise_for_status()
-        except Exception as e:
-            print(f"Telegram failed: {e}")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+def send_telegram(message):
+    if not BOT_TOKEN or not CHAT_ID:
+        return
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message}
+
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except Exception:
+        pass
