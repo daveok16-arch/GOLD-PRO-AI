@@ -1,0 +1,11 @@
+[
+  {
+    "time": "TEST",
+    "symbol": "XAUUSD",
+    "signal": "BUY",
+    "price": 1,
+    "confidence": 99,
+    "status": "open",
+    "stored_at": "2026-02-01T05:54:48.504183"
+  }
+]

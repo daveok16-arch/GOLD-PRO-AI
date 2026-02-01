@@ -1,4 +1,3 @@
-from storage import save_signal
 from datetime import datetime
 import pytz
 
