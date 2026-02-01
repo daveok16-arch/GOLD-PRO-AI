@@ -35,7 +35,7 @@ def analytics_expectancy():
     return jsonify(expectancy(signals))
 
 
-from analytics_performance import performance_from_signals, best_trading_hour
+# from analytics_performance import performance_from_signals, best_trading_hour
 from storage import load_signals
 
 @app.route("/analytics/performance")
