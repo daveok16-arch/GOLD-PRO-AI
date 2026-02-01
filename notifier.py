@@ -1,25 +1,32 @@
 import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
-def send_signal(symbol, signal, confidence, price):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return
+TELEGRAM_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
-    message = (
-        f"📡 GOLD-PRO-AI SIGNAL\n\n"
-        f"Symbol: {symbol}\n"
-        f"Signal: {signal}\n"
-        f"Confidence: {confidence}%\n"
-        f"Price: {price}"
-    )
+def send_signal(data):
+    message = f"""
+<b>{data['symbol']} TRADE SIGNAL</b>
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+<ul>
+<li><b>Direction:</b> {data['signal']}</li>
+<li><b>Confidence:</b> {data['confidence']}%</li>
+<li><b>Trend:</b> {data['trend']}</li>
+<li><b>Entry:</b> {data['price']}</li>
+<li><b>Stop Loss:</b> {data['SL']}</li>
+<li><b>Take Profit:</b> {data['TP']}</li>
+<li><b>RSI:</b> {data['rsi']}</li>
+<li><b>Model:</b> {data['model']}</li>
+</ul>
+
+<i>London / NY Smart Money Execution</i>
+"""
+
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True
     }
 
-    try:
-        requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        print(f"[TELEGRAM ERROR] {e}")
+    r = requests.post(TELEGRAM_URL, json=payload, timeout=10)
+    r.raise_for_status()

@@ -26,3 +26,15 @@ def rsi(prices, period=14):
 
     rs = avg_gain / avg_loss
     return round(100 - (100 / (1 + rs)), 2)
+
+def atr(highs, lows, closes, period=14):
+    trs = []
+    for i in range(1, len(closes)):
+        tr = max(
+            highs[i] - lows[i],
+            abs(highs[i] - closes[i - 1]),
+            abs(lows[i] - closes[i - 1])
+        )
+        trs.append(tr)
+
+    return sum(trs[-period:]) / period
