@@ -1,3 +1,4 @@
+import os
 from flask import render_template
 from trade_resolver import resolve_trades
 from flask import Flask, jsonify
@@ -79,7 +80,7 @@ def home():
 def home_root():
     return render_template("analytics.html")
 
-    app.run(host="0.0.0.0", port=3000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)), debug=False)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)), debug=False)
