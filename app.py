@@ -1,3 +1,4 @@
+from trade_resolver import resolve_trades
 from flask import Flask, jsonify
 from analytics import (
     build_analytics,
