@@ -1,47 +1,48 @@
-from flask import Flask, jsonify, render_template
-from main import run_scan
-from state import load_signals
-from utils import market_is_open
-from analytics import build_analytics
-import threading
-import time
+from flask import Flask, jsonify
+from analytics import (
+    build_analytics,
+    best_performing_symbols,
+    time_of_day_analytics,
+    expectancy
+)
+from storage import load_signals
 
 app = Flask(__name__)
-
-SCAN_INTERVAL = 300  # 5 minutes
-
-def auto_scan_loop():
-    while True:
-        if market_is_open():
-            print("[AUTO] Market open → scanning")
-            run_scan()
-        else:
-            print("[AUTO] Market closed → sleeping")
-
-        time.sleep(SCAN_INTERVAL)
-
-@app.route("/")
-def home():
-    return jsonify({
-        "market_open": market_is_open(),
-        "banner": None if market_is_open() else "Market is closed or low liquidity (weekend)",
-        "signals": load_signals()
-    })
 
 @app.route("/analytics")
 def analytics_api():
     return jsonify(build_analytics())
 
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html", analytics=build_analytics())
-
-@app.route("/status")
-def status():
+@app.route("/analytics/ranking")
+def analytics_ranking():
     return jsonify({
-        "market_open": market_is_open()
+        "best_performing": best_performing_symbols()
     })
 
+@app.route("/analytics/time")
+def analytics_time():
+    signals = load_signals()
+    return jsonify({
+        "by_hour": time_of_day_analytics(signals)
+    })
+
+@app.route("/analytics/expectancy")
+def analytics_expectancy():
+    signals = load_signals()
+    return jsonify(expectancy(signals))
+
 if __name__ == "__main__":
-    threading.Thread(target=auto_scan_loop, daemon=True).start()
-    app.run(host="0.0.0.0", port=3000)
+    app.run(host="0.0.0.0", port=3000, debug=False)
+
+from analytics_performance import performance_from_signals, best_trading_hour
+from storage import load_signals
+
+@app.route("/analytics/performance")
+def analytics_performance():
+    signals = load_signals()
+    return performance_from_signals(signals)
+
+@app.route("/analytics/best-hour")
+def analytics_best_hour():
+    signals = load_signals()
+    return {"best_hour": best_trading_hour(signals)}

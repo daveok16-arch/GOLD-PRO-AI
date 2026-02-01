@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signals by Time</title>
+  <style>
+    body {
+      background:#0b1220;
+      color:#e5e7eb;
+      font-family:Arial;
+      padding:20px;
+    }
+    .bar {
+      background:#22c55e;
+      height:22px;
+      border-radius:6px;
+      margin-top:6px;
+    }
+    .card {
+      background:#111827;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:15px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>⏰ Signals by Time of Day</h2>
+
+{% for row in data %}
+<div class="card">
+  <strong>Hour {{ row.hour }}:00</strong><br>
+  {{ row.signals }} signals (avg conf {{ row.avg_confidence }})
+  <div class="bar" style="width:{{ row.signals * 10 }}%"></div>
+</div>
+{% endfor %}
+
+</body>
+</html>

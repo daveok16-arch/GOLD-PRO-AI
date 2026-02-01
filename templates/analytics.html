@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GOLD-PRO-AI Analytics</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .green { color: #22c55e; }
+    .red { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<h2>📊 GOLD-PRO-AI Analytics Dashboard</h2>
+
+<div class="grid">
+
+  <div class="card">
+    <h3>📈 Expectancy</h3>
+    <div class="value" id="expectancy">–</div>
+  </div>
+
+  <div class="card">
+    <h3>✅ Wins</h3>
+    <div class="value green" id="wins">–</div>
+  </div>
+
+  <div class="card">
+    <h3>❌ Losses</h3>
+    <div class="value red" id="losses">–</div>
+  </div>
+
+</div>
+
+<script>
+fetch("/analytics/expectancy")
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById("expectancy").textContent = d.expectancy.toFixed(2);
+    document.getElementById("wins").textContent = d.wins;
+    document.getElementById("losses").textContent = d.losses;
+  })
+  .catch(() => {
+    document.getElementById("expectancy").textContent = "ERR";
+  });
+</script>
+
+</body>
+</html>
