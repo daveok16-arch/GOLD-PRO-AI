@@ -1,30 +1,16 @@
 import json
-from datetime import datetime
+import os
 
-FILE = "trade_history.json"
+SIGNALS_FILE = "signals.json"
 
-def load_trades():
-    try:
-        with open(FILE, "r") as f:
-            return json.load(f)
-    except:
+def load_signals():
+    if not os.path.exists(SIGNALS_FILE):
         return []
+    with open(SIGNALS_FILE, "r") as f:
+        return json.load(f)
 
-def save_trade(trade):
-    data = load_trades()
-    data.append(trade)
-    with open(FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-def record_trade(symbol, signal, entry, sl, tp, result, rr):
-    trade = {
-        "time": datetime.utcnow().isoformat(),
-        "symbol": symbol,
-        "signal": signal,
-        "entry": entry,
-        "sl": sl,
-        "tp": tp,
-        "result": result,  # WIN / LOSS
-        "rr": rr
-    }
-    save_trade(trade)
+def save_signal(signal):
+    signals = load_signals()
+    signals.append(signal)
+    with open(SIGNALS_FILE, "w") as f:
+        json.dump(signals, f, indent=2)
