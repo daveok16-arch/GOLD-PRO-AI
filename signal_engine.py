@@ -1,69 +1,57 @@
 from data_fetcher import fetch_latest_price, fetch_recent_prices
-from indicators import ema, rsi, atr
-from session_filter import is_trading_session
+from indicators import ema, rsi
 
-def trend_direction(closes):
-    ema50 = ema(closes[-50:], 50)
-    ema200 = ema(closes[-200:], 200)
-    if ema50 > ema200:
+def detect_structure(prices):
+    if len(prices) < 20:
+        return "RANGE"
+
+    higher_high = prices[-1] > max(prices[-20:-1])
+    lower_low = prices[-1] < min(prices[-20:-1])
+
+    if higher_high:
         return "BULL"
-    if ema50 < ema200:
+    if lower_low:
         return "BEAR"
-    return "FLAT"
 
-def liquidity_sweep(highs, lows):
-    recent_high = max(highs[-20:-5])
-    recent_low = min(lows[-20:-5])
-    return highs[-1] > recent_high, lows[-1] < recent_low
+    return "RANGE"
 
-def break_of_structure(closes, direction):
-    if direction == "BULL":
-        return closes[-1] > max(closes[-20:-5])
-    if direction == "BEAR":
-        return closes[-1] < min(closes[-20:-5])
-    return False
 
 def generate_signal(symbol):
-    if not is_trading_session():
-        return {"symbol": symbol, "signal": "HOLD", "reason": "Outside session"}
-
     price = fetch_latest_price(symbol)
+    prices = fetch_recent_prices(symbol, limit=200)
 
-    c15, h15, l15 = fetch_recent_prices(symbol, 200, "15m")
-    c1h, _, _ = fetch_recent_prices(symbol, 200, "1h")
+    ema_fast = ema(prices, 50)
+    ema_slow = ema(prices, 200)
+    rsi_val = rsi(prices)
 
-    t15 = trend_direction(c15)
-    t1h = trend_direction(c1h)
+    structure = detect_structure(prices)
 
-    if t15 != t1h or t15 == "FLAT":
-        return {"symbol": symbol, "signal": "HOLD", "reason": "MTF mismatch"}
+    signal = "HOLD"
+    confidence = 50
+    trend = "FLAT"
 
-    sweep_high, sweep_low = liquidity_sweep(h15, l15)
+    # ===== SMART MONEY LOGIC =====
 
-    if t15 == "BULL" and not sweep_low:
-        return {"symbol": symbol, "signal": "HOLD", "reason": "No sell-side liquidity sweep"}
+    # BULLISH SMC
+    if ema_fast > ema_slow and structure == "BULL" and 50 <= rsi_val <= 65:
+        signal = "BUY"
+        trend = "BULL"
+        confidence = 85
 
-    if t15 == "BEAR" and not sweep_high:
-        return {"symbol": symbol, "signal": "HOLD", "reason": "No buy-side liquidity sweep"}
-
-    if not break_of_structure(c15, t15):
-        return {"symbol": symbol, "signal": "HOLD", "reason": "No BOS"}
-
-    atr_val = atr(h15, l15, c15)
-    rsi_val = rsi(c15)
-
-    signal = "BUY" if t15 == "BULL" else "SELL"
-    sl = price - (1.5 * atr_val) if signal == "BUY" else price + (1.5 * atr_val)
-    tp = price + (3 * atr_val) if signal == "BUY" else price - (3 * atr_val)
+    # BEARISH SMC
+    elif ema_fast < ema_slow and structure == "BEAR" and 35 <= rsi_val <= 50:
+        signal = "SELL"
+        trend = "BEAR"
+        confidence = 85
 
     return {
         "symbol": symbol,
         "signal": signal,
-        "confidence": 95,
+        "confidence": confidence,
         "price": round(price, 2),
-        "trend": t15,
-        "rsi": round(rsi_val, 2),
-        "SL": round(sl, 2),
-        "TP": round(tp, 2),
-        "model": "SMC-MTF-BOS"
+        "ema_fast": round(ema_fast, 2),
+        "ema_slow": round(ema_slow, 2),
+        "trend": trend,
+        "structure": structure,
+        "rsi": round(rsi_val, 2)
     }
