@@ -1,182 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GOLD-PRO-AI Signal Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            background: #0b1220;
-            color: #eaeaea;
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        h1 { color: #f5c542; }
-        button {
-            padding: 12px 18px;
-            background: #22c55e;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .banner {
-            margin: 15px 0;
-            padding: 12px;
-            border-radius: 6px;
-            background: #7c2d12;
-            color: #fde68a;
-            display: none;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-            text-align: center;
-        }
-        th { color: #38bdf8; }
-    </style>
+<title>GOLD-PRO-AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{background:#0e1117;color:#e6edf3;font-family:Arial;text-align:center}
+.card{background:#161b22;margin:40px auto;padding:30px;border-radius:12px;max-width:420px}
+a{display:block;margin:15px;padding:12px;background:gold;color:black;
+text-decoration:none;border-radius:8px;font-weight:bold}
+</style>
 </head>
 <body>
-    <h1>🚀 GOLD-PRO-AI Signal Dashboard</h1>
-    <p>Status: <b>RUNNING</b></p>
-
-    <div id="marketBanner" class="banner">
-        ⛔ Market is currently closed (Weekend).  
-        Signals will resume when markets open.
-    </div>
-
-    <button onclick="runScan()">Run Signal Scan</button>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Symbol</th>
-                <th>Signal</th>
-                <th>Confidence</th>
-                <th>Price</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody id="signals">
-            <tr><td colspan="5">No signals yet</td></tr>
-        </tbody>
-    </table>
-
-<script>
-async function loadStatus() {
-    const res = await fetch('/status');
-    const data = await res.json();
-
-    if (data.market_closed) {
-        document.getElementById('marketBanner').style.display = 'block';
-    }
-
-    render(data.signals || []);
-}
-
-async function runScan() {
-    const res = await fetch('/run');
-    const data = await res.json();
-    render(data.all_signals || []);
-}
-
-function render(signals) {
-    const tbody = document.getElementById('signals');
-    tbody.innerHTML = '';
-    if (signals.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No signals yet</td></tr>';
-        return;
-    }
-    signals.slice().reverse().forEach(s => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${s.symbol}</td>
-                <td>${s.signal}</td>
-                <td>${s.confidence}%</td>
-                <td>${s.price}</td>
-                <td>${s.timestamp}</td>
-            </tr>
-        `;
-    });
-}
-
-loadStatus();
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>GOLD-PRO-AI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0e1117;
-            color: #e6edf3;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 20px;
-        }
-        h1 {
-            color: gold;
-            font-size: 2.5em;
-        }
-        .card {
-            background: #161b22;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        a {
-            color: #58a6ff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .routes a {
-            display: block;
-            margin: 8px 0;
-        }
-        .status {
-            color: #3fb950;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>GOLD-PRO-AI</h1>
-    <p>AI-powered gold (XAUUSD) signal analytics & performance engine.</p>
-
-    <div class="card">
-        <p>Status: <span class="status">LIVE</span></p>
-        <p>Environment: Production (Render)</p>
-    </div>
-
-    <div class="card routes">
-        <h3>Analytics Endpoints</h3>
-        <a href="/analytics">📊 Analytics Overview</a>
-        <a href="/analytics/performance">📈 Performance</a>
-        <a href="/analytics/expectancy">🎯 Expectancy</a>
-        <a href="/analytics/best-hour">⏰ Best Trading Hour</a>
-        <a href="/analytics/ranking">🏆 Signal Ranking</a>
-        <a href="/analytics/time">🕒 Time Analysis</a>
-    </div>
-
-    <div class="card">
-        <small>© 2026 GOLD-PRO-AI</small>
-    </div>
+<div class="card">
+<h1>🥇 GOLD-PRO-AI</h1>
+<a href="/analytics-ui">Analytics Dashboard</a>
+<a href="/health">System Status</a>
 </div>
 </body>
 </html>
